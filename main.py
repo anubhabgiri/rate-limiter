@@ -1,36 +1,44 @@
 from flask import Flask, request
 import time
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 app = Flask(__name__)
 
 # Rate limit settings
-TOTAL_LIMIT= 10  # Maximum number of requests 
-WINDOW = 86400
+TOTAL_LIMIT= int(os.getenv("TOTAL"))  # Maximum number of requests 
+WINDOW = int(os.getenv("WINDOW"))
+PARTITION_KEY = os.getenv("PARTITION_KEY")
+PARTITION_KEY_ACTIVE = (int(os.getenv("PARTITION_KEY_ACTIVE")) == 1)
+PARTITION_LIMIT = int(os.getenv("PARTITION_LIMIT"))
 
 # In-memory storage for request timestamps
 requests = {}
 total = []
 
-def rate_limit_check(user_id: str, limit: int):
-    # update logic here
+def rate_limit_check(partition_key: str=None):
     now = int(time.time())
     global total
     global requests
+    
     total = list(filter(lambda x: now - x <= WINDOW, total))
     if len(total) >= TOTAL_LIMIT:
         return False
 
-    else:
+    elif PARTITION_KEY_ACTIVE and partition_key != None:
         
-        r = requests.get(user_id, [])
+        r = requests.get(partition_key, [])
         r = list(filter( lambda x: now - x <= WINDOW, r ))
-        if len(r) >= limit:
+        if len(r) >= PARTITION_LIMIT:
             return False
         else:
             total.append(now)
             r.append(now)
-            requests[user_id] = r
-            return True    
+            requests[partition_key] = r
+            return True  
+    else:
+        return True  
 
 @app.route('/')
 def check():
@@ -38,10 +46,8 @@ def check():
     
     """
     req = request.json
-    # TODO : basic request validation
-    if not req.get("user_id"):
-        return 'user ID is required', 400
-    if not rate_limit_check(req.get("user_id"), req.get("limit")):
+    # print("request", req)
+    if not rate_limit_check(req.get(PARTITION_KEY, None)):
         return 'Rejected', 400
     return 'Accepted', 200
 

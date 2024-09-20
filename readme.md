@@ -1,10 +1,8 @@
 # Rate Limiter
 
-Configurable rate limiter for notifications
+General purpose rate limiter for microservices
 
 This is meant to be a standalone service
-
-! Future scope - use Redis
 
 ## Run with Docker
 ``` docker compose up ```
@@ -13,8 +11,10 @@ This is meant to be a standalone service
 
 ```
     {
-        "user_id": "36049",
-        "timestamp": 1278403827,
-        "limit": 3
+        "user_id": "36049"
     }
 ```
+
+## Sample Response
+``` Accepted ```
+

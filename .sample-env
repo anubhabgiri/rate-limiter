@@ -1,0 +1,13 @@
+# This denotes the window in SECONDS
+WINDOW=86400 # time frame 
+
+# This denotes the total bucket size applicable for the time window
+TOTAL=1000000 # application level limit
+
+# consider partition key for limiting or not
+# 0 - FALSE
+# 1 - TRUE
+PARTITION_KEY_ACTIVE=1
+
+# This is the key based on which the 
+PARTITION_KEY="user_id"
